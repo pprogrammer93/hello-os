@@ -25,9 +25,6 @@
 
 void sleep ();
 void yieldControl ();
-void pauseProcess (int segment, int *result);
-void resumeProcess (int segment, int *result);
-void killProcess (int segment, int *result);
 
 void handleTimerInterrupt(int segment, int stackPointer);
 void handleInterrupt21 (int AX, int BX, int CX, int DX);
@@ -196,18 +193,6 @@ void handleInterrupt21 (int AX, int BX, int CX, int DX) {
     case 0x30:
     	yieldControl();
     	break;
-    case 0x31:
-    	sleep();
-    	break;
-    case 0x32:
-    	pauseProcess(BX, CX);
-    	break;
-    case 0x33:
-    	resumeProcess(BX, CX);
-    	break;
-    case 0x34:
-    	killProcess(BX, CX);
-    	break;
     //case 0x50:
       //goToDir(BX, CX, DX);
     default:
@@ -220,64 +205,6 @@ void sleep () {
   running->state = PAUSED;
   restoreDataSegment();  
   yieldControl();
-}
-
-
-void pauseProcess (int segment, int *result) {
-  struct PCB *pcb;
-  int res;
-   
-  setKernelDataSegment();
-  pcb = getPCBOfSegment(segment);
-  if (pcb != NULL && pcb->state != PAUSED) {
-    pcb->state = PAUSED;
-    res = SUCCESS;
-  }
-  else {
-    res = NOT_FOUND;
-  }
-  restoreDataSegment();
-   
-  *result = res;
-}
-
-
-void resumeProcess (int segment, int *result) {
-  struct PCB *pcb;
-  int res;
-   
-  setKernelDataSegment();
-  pcb = getPCBOfSegment(segment);
-  if (pcb != NULL && pcb->state == PAUSED) {
-    pcb->state = READY;
-    addToReady(pcb);
-    res = SUCCESS;
-  }
-  else {
-    res = NOT_FOUND;
-  }
-  restoreDataSegment();
-   
-  *result = res;
-}
-
-void killProcess (int segment, int *result) {
-  struct PCB *pcb;
-  int res;
-   
-  setKernelDataSegment();
-  pcb = getPCBOfSegment(segment);
-  if (pcb != NULL) {
-    releaseMemorySegment(pcb->segment);
-    releasePCB(pcb);
-    res = SUCCESS;
-  }
-  else {
-    res = NOT_FOUND;
-  }
-  restoreDataSegment();
-   
-  *result = res;
 }
 
 
