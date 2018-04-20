@@ -467,7 +467,7 @@ void readFile(char *buffer, char *path, int *result, char parentIndex){
 		return;
 	} else {
 		//printString("F\r\n");
-		*result = SUCCESS;
+		*result = file_index;
 		readSector(sector, SECTORS_SECTOR); //sector = sectors
 		//printString("test");
 		i = file_index * DIRS_ENTRY_LENGTH;
