@@ -53,6 +53,9 @@ void putArgs (char curdir, char argc, char **argv);
 void getCurdir (char *curdir);
 void getArgc (char *argc);
 void getArgv (char index, char *argv);
+void handleTimerInterrupt(int segment, int stackPointer);
+void yieldControl();
+void sleep();
 //void goToDir (char* path, int *success, char *curdir);
 
 int main() {
@@ -67,21 +70,22 @@ int main() {
 	//clearScreen();
 	//displayLogo();
 	//interrupt(0x16, 0, 0, 0, 0);
-	
+
 	initializeProcStructures();
 	makeInterrupt21();
 	makeTimerInterrupt();
 
+	printString("Hello, there!\r\n");
 	putArgs(0xFF, 0, arg);
 
-	//interrupt(0x21, 0xFF << 8 | 0x06, "shell", 0x2000, &success);
+	// interrupt(0x21, 0xFF << 8 | 0x06, "shell", 0x2000, &success);
 	
-	makeDirectory("K301", &success, 0xFF);
-	makeDirectory("K301/in", &success, 0xFF);
-	//writeFile("0zwxQji9","K301/in/code.txt", &sect, 0xFF);
+	// makeDirectory("K301", &success, 0xFF);
+	// makeDirectory("K301/in", &success, 0xFF);
+	// writeFile("0zwxQji9","K301/in/code.txt", &sect, 0xFF);
 	
-	putArgs(0xFF, 2, arg);
-	interrupt(0x21, 0xFF << 8 | 0x06, "keyproc2", 0x2000, &success);
+	// putArgs(0xFF, 2, arg);
+	// interrupt(0x21, 0xFF << 8 | 0x06, "keyproc2", 0x2000, &success);
 	
 	executeProgram("shell", 0x2000, &success, 0xFF);
 	/*readFile(buffer, "key.txt", &success, 0xFF);
@@ -180,6 +184,12 @@ void handleInterrupt21 (int AX, int BX, int CX, int DX) {
     case 0X23:
       getArgv(BX, CX);
       break;
+     case 0x30:
+     	yieldControl();
+     	break;
+     case 0x31:
+     	sleep();
+     	break;
     //case 0x50:
       //goToDir(BX, CX, DX);
     default:
@@ -683,3 +693,13 @@ void deleteDirectory(char *path, int *success, char parentIndex) {
 	*success = SUCCESS;
 }
 
+void yieldControl() {
+	interrupt(0x08, 0, 0, 0, 0);
+}
+
+void sleep() {
+	setKernelDataSegment();
+	running->state = PAUSED;
+	restoreDataSegment();
+	yieldControl();
+}
