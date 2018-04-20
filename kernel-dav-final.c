@@ -101,6 +101,34 @@ int main() {
   while (1) {printString("A");}
 }
 
+void handleTimerInterrupt(int segment, int stackPointer) {
+	struct PCB *currPCB;
+	struct PCB *nextPCB;
+	setKernelDataSegment();
+	currPCB = getPCBOfSegment(segment);
+	currPCB->stackPointer = stackPointer;
+	if (currPCB->state != PAUSED) {
+		currPCB->state = READY;
+		addToReady(currPCB);
+	}
+	do {
+		nextPCB = removeFromReady();
+	}
+	while (nextPCB != NULL && (nextPCB->state == DEFUNCT ||
+		nextPCB->state == PAUSED));
+		if (nextPCB != NULL) {
+		nextPCB->state = RUNNING;
+		segment = nextPCB->segment;
+		stackPointer = nextPCB->stackPointer;
+		running = nextPCB;
+	}
+	else {
+		running = &idleProc;
+	}
+	restoreDataSegment();
+	returnFromTimer(segment, stackPointer);
+}
+
 
 void handleInterrupt21 (int AX, int BX, int CX, int DX) {
   char AL, AH;
