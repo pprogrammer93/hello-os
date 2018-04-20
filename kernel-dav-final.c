@@ -67,12 +67,11 @@ int main() {
 	//clearScreen();
 	//displayLogo();
 	//interrupt(0x16, 0, 0, 0, 0);
-
-	// Initialize PCB
+	
 	initializeProcStructures();
-
-	//clearScreen();
 	makeInterrupt21();
+	makeTimerInterrupt();
+
 	putArgs(0xFF, 0, arg);
 
 	//interrupt(0x21, 0xFF << 8 | 0x06, "shell", 0x2000, &success);
