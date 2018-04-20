@@ -467,7 +467,7 @@ void readFile(char *buffer, char *path, int *result, char parentIndex){
 		return;
 	} else {
 		//printString("F\r\n");
-		*result = SUCCESS;
+		*result = file_index;
 		readSector(sector, SECTORS_SECTOR); //sector = sectors
 		//printString("test");
 		i = file_index * DIRS_ENTRY_LENGTH;
@@ -593,8 +593,8 @@ void executeProgram(char *path, int segment, int *success, char parentIndex){
 }
 
 /*
-//EXECUTE PROGRAM YG BARU INI
-void executeProgram (char *path, int *result, char parentIndex){
+//EXECUTE PROGRAM YG BARU INI udah dibuat bisa parallel harusnya
+void executeProgram (char *path, int executeParallel int *result, char parentIndex){
 	struct PCB* pcb;
 	int segment;
 	int i, fileIndex;
@@ -612,14 +612,16 @@ void executeProgram (char *path, int *result, char parentIndex){
 		pcb->state = STARTING;
 		pcb->segment = segment;
 		pcb->stackPointer = 0xFF00;
-		pcb->parentSegment = running->segment;
+		pcb->parentSegment = executeParallel ? NO_PARENT : running->segment;
 		addToReady(pcb);
 		restoreDataSegment();
 		for (i = 0; i < SECTOR_SIZE * MAX_SECTORS; i++) {
 		putInMemory(segment, i, buffer[i]);
 	}
 	initializeProgram(segment);
-	sleep();
+	if (!executeParallel) {
+		sleep();
+	}
 	}
 	else {
 		*result = INSUFFICIENT_SEGMENTS;

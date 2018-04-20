@@ -17,7 +17,7 @@ int main() {
 	interrupt(0x21, 0x21, &curdir, 0, 0); //get curdir
 
 	
-	readString(input);
+	readString(input, 1);
 	parseInput(input, command);
 	
 	if (command[0][0] == '.' && command[0][1] == '/') {
@@ -59,8 +59,8 @@ int equalString(char *str1, char *str2) {
 		return 1;
 }
 
-void readString(char *string) {
-	interrupt(0x21, 0x1, string, 0, 0);
+void readString(char *string, int disableProcessControls) {
+	interrupt(0x21, 0x1, string, disableProcessControls, 0);
 }
 
 void printString(char *string) {
