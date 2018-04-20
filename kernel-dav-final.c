@@ -589,19 +589,55 @@ void executeProgram(char *path, int segment, int *success, char parentIndex){
 			putInMemory(segment, i, buffer[i]);
 		} 
 		launchProgram(segment);
-	}
-	 
+	}	 
 }
 
+/*
+//EXECUTE PROGRAM YG BARU INI
+void executeProgram (char *path, int *result, char parentIndex){
+	struct PCB* pcb;
+	int segment;
+	int i, fileIndex;
+	char buffer[MAX_SECTORS * SECTOR_SIZE];
+	readFile(buffer, path, result, parentIndex);
+	if (*result != NOT_FOUND) {
+		setKernelDataSegment();
+		segment = getFreeMemorySegment();
+	restoreDataSegment();
+	fileIndex = *result;
+	if (segment != NO_FREE_SEGMENTS) {
+		setKernelDataSegment();
+		pcb = getFreePCB();
+		pcb->index = fileIndex;
+		pcb->state = STARTING;
+		pcb->segment = segment;
+		pcb->stackPointer = 0xFF00;
+		pcb->parentSegment = running->segment;
+		addToReady(pcb);
+		restoreDataSegment();
+		for (i = 0; i < SECTOR_SIZE * MAX_SECTORS; i++) {
+		putInMemory(segment, i, buffer[i]);
+	}
+	initializeProgram(segment);
+	sleep();
+	}
+	else {
+		*result = INSUFFICIENT_SEGMENTS;
+	}
+}
+*/
+
 void terminateProgram (int *result) {
-  char shell[6];
-  shell[0] = 's';
-  shell[1] = 'h';
-  shell[2] = 'e';
-  shell[3] = 'l';
-  shell[4] = 'l';
-  shell[5] = '\0';
-  executeProgram(shell, 0x2000, result, 0xFF);
+	int parentSegment;
+	setKernelDataSegment();
+	parentSegment = running->parentSegment;
+	releaseMemorySegment(running->segment);
+	releasePCB(running);
+	restoreDataSegment();
+	if (parentSegment != NO_PARENT) {
+		resumeProcess(parentSegment, result);
+	}
+	yieldControl();
 }
 
 
