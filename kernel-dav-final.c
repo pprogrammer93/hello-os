@@ -23,13 +23,6 @@
 #define ROOT 0xFF
 #define ARGS_SECTOR 512
 
-void sleep ();
-void yieldControl ();
-void pauseProcess (int segment, int *result);
-void resumeProcess (int segment, int *result);
-void killProcess (int segment, int *result);
-
-void handleTimerInterrupt(int segment, int stackPointer);
 void handleInterrupt21 (int AX, int BX, int CX, int DX);
 void printString(char *string);
 void readString(char *string);
@@ -61,6 +54,9 @@ void getArgv (char index, char *argv);
 void handleTimerInterrupt(int segment, int stackPointer);
 void yieldControl();
 void sleep();
+void pauseProcess (int segment, int *result);
+void resumeProcess (int segment, int *result);
+void killProcess (int segment, int *result);
 //void goToDir (char* path, int *success, char *curdir);
 
 int main() {
@@ -76,19 +72,11 @@ int main() {
 	//displayLogo();
 	//interrupt(0x16, 0, 0, 0, 0);
 
-<<<<<<< HEAD
-	//clearScreen();
-	initializeProcStructures();
-	makeInterrupt21();	
-	makeTimerInterrupt();
-
-=======
 	initializeProcStructures();
 	makeInterrupt21();
 	makeTimerInterrupt();
 
 	printString("Hello, there!\r\n");
->>>>>>> 8094065fd3bbc3743d40aaf8e644b93e052fed6d
 	putArgs(0xFF, 0, arg);
 
 	// interrupt(0x21, 0xFF << 8 | 0x06, "shell", 0x2000, &success);
@@ -115,41 +103,6 @@ int main() {
 	}/**/
 	//printString("\r\n --Finished");
   while (1);
-}
-
-void handleTimerInterrupt(int segment, int stackPointer) {
-  struct PCB *currPCB;
-  struct PCB *nextPCB;
- 
-  setKernelDataSegment();
-  currPCB = getPCBOfSegment(segment);
-  currPCB->stackPointer = stackPointer;
-  if (currPCB->state != PAUSED) {
-    currPCB->state = READY;
-    addToReady(currPCB);
-  }
- 
-  do {
-    nextPCB = removeFromReady();
-  }  
-  while (nextPCB != NULL && (nextPCB->state == DEFUNCT || nextPCB->state == PAUSED));
-
-  if (nextPCB != NULL) {
-    nextPCB->state = RUNNING;
-    segment = nextPCB->segment;
-    stackPointer = nextPCB->stackPointer;
-    running = nextPCB;
-  }
-  else {
-    running = &idleProc;
-  }
-  restoreDataSegment();
- 
-  returnFromTimer(segment, stackPointer);
-}
-
-void yieldControl () {
-  interrupt(0x08, 0, 0, 0, 0);
 }
 
 void handleTimerInterrupt(int segment, int stackPointer) {
@@ -232,7 +185,6 @@ void handleInterrupt21 (int AX, int BX, int CX, int DX) {
     case 0X23:
       getArgv(BX, CX);
       break;
-<<<<<<< HEAD
     case 0x30:
     	yieldControl();
     	break;
@@ -248,28 +200,12 @@ void handleInterrupt21 (int AX, int BX, int CX, int DX) {
     case 0x34:
     	killProcess(BX, CX);
     	break;
-=======
-     case 0x30:
-     	yieldControl();
-     	break;
-     case 0x31:
-     	sleep();
-     	break;
->>>>>>> 8094065fd3bbc3743d40aaf8e644b93e052fed6d
     //case 0x50:
       //goToDir(BX, CX, DX);
     default:
       printString("Invalid interrupt");
   }
 }
-
-void sleep () {
-  setKernelDataSegment();
-  running->state = PAUSED;
-  restoreDataSegment();  
-  yieldControl();
-}
-
 
 void pauseProcess (int segment, int *result) {
   struct PCB *pcb;
