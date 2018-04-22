@@ -120,7 +120,8 @@ void handleTimerInterrupt(int segment, int stackPointer) {
 	}
 	while (nextPCB != NULL && (nextPCB->state == DEFUNCT ||
 		nextPCB->state == PAUSED));
-		if (nextPCB != NULL) {
+
+	if (nextPCB != NULL) {
 		nextPCB->state = RUNNING;
 		segment = nextPCB->segment;
 		stackPointer = nextPCB->stackPointer;

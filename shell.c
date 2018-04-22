@@ -21,24 +21,24 @@ int main() {
 	parseInput(input, command);
 	
 	if (command[0][0] == '.' && command[0][1] == '/') {
-		interrupt(0x21, curdir << 8 | 0x6, &command[0][2], 0x2000, &success); //execute dari curdir
+		interrupt(0x21, curdir << 8 | 0x6, &command[0][2], 0, &success); //execute dari curdir
 	}
 
 
 	if (equalString(command[0], "echo")) {
-		interrupt(0x21, 0xFF << 8 | 0x6, "echo", 0x2000, &success); //execute dari root
+		interrupt(0x21, 0xFF << 8 | 0x6, "echo", 0, &success); //execute dari root
 	} else if (equalString(command[0], "mkdir")) {
-		interrupt(0x21, 0xFF << 8 | 0x6, "mkdir", 0x2000, &success);
+		interrupt(0x21, 0xFF << 8 | 0x6, "mkdir", 0, &success);
 	} else if (equalString(command[0], "ls")) {
-		interrupt(0x21, 0xFF << 8 | 0x6, "ls", 0x2000, &success);
+		interrupt(0x21, 0xFF << 8 | 0x6, "ls", 0, &success);
 	} else if (equalString(command[0], "rm")) {
-		interrupt(0x21, 0xFF << 8 | 0x6, "rm", 0x2000, &success);
+		interrupt(0x21, 0xFF << 8 | 0x6, "rm", 0, &success);
 	} else if (equalString(command[0], "cat")) {
-		interrupt(0x21, 0xFF << 8 | 0x6, "cat", 0x2000, &success);
+		interrupt(0x21, 0xFF << 8 | 0x6, "cat", 0, &success);
 	} else if (equalString(command[0], "cd")) {
-		interrupt(0x21, 0xFF << 8 | 0x6, "cd", 0x2000, &success);
+		interrupt(0x21, 0xFF << 8 | 0x6, "cd", 0, &success);
 	} else {
-		interrupt(0x21, curdir << 8 | 0x6, command[0], 0x2000, &success);
+		interrupt(0x21, curdir << 8 | 0x6, command[0], 0, &success);
 	}
 	if (success != 0) {
 		printString("command failed\r\n");
