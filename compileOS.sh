@@ -26,7 +26,8 @@ ld86 -o rm -d rm.o lib_asm.o
 ld86 -o cd -d cd.o lib_asm.o
 #ld86 -o ps -d ps.o lib_asm.o
 ./loadFile shell
-./loadFile keyproc2
+./loadFile keyproc3a
+./loadFile keyproc3b
 ./loadFile echo
 ./loadFile mkdir
 ./loadFile cat

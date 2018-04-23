@@ -1,4 +1,4 @@
-int equalString(char *str1, char *str2, int str1len);
+int equalString(char *str1, char *str2);
 void readString(char *string, int disableProcessControls);
 void printString(char *string);
 void parseInput(char * input, char **output);
@@ -12,7 +12,6 @@ int main() {
 	char input[100];
 	char * command[20];
 
-	while (1) {
 	interrupt(0x21, 0x00, "$ ", 0, 0);
 
 	interrupt(0x21, 0x21, &curdir, 0, 0); //get curdir
@@ -23,20 +22,9 @@ int main() {
 	
 	if (command[0][0] == '.' && command[0][1] == '/') {
 		interrupt(0x21, curdir << 8 | 0x6, &command[0][2], 0, &success); //execute dari curdir
-	} else if (equalString(command[0], "resume")) {
-		interrupt(0x21, 0x33, command[1][0]-'0', &success, 0);
-	} else if (equalString(command[0], "pause"))  {
-		interrupt(0x21, 0x34, command[1][0]-'0', &success, 0);
-	} else if (equalString(command[0], "kill"))  {
-		interrupt(0x21, 0x35, command[1][0]-'0', &success, 0);	
-	} else if (equalString(command[0], "ps")){
-		interrupt(0x21, 0x35, 0, 0, 0);
-	} else {
-		interrupt(0x21, 0xFF << 8 | 0x6, command[0], 0, &success);
 	}
-	
 
-	/*
+
 	if (equalString(command[0], "echo")) {
 		interrupt(0x21, 0xFF << 8 | 0x6, "echo", 0, &success); //execute dari root
 	} else if (equalString(command[0], "mkdir")) {
@@ -51,11 +39,11 @@ int main() {
 		interrupt(0x21, 0xFF << 8 | 0x6, "cd", 0, &success);
 	} else {
 		interrupt(0x21, curdir << 8 | 0x6, command[0], 0, &success);
-	}*/
-	if (success < 0) {
+	}
+	if (success != 0) {
 		printString("command failed\r\n");
 	}
-	}
+
 	return 0;
 }
 
