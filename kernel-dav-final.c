@@ -209,7 +209,10 @@ void handleInterrupt21 (int AX, int BX, int CX, int DX) {
     	killProcess(BX, CX);
     	break;
     case 0x35:
+    //interrupt(0x21, 0x0, "PID \tProcessName\tSegment\tState\r\n",0,0);
+    //printString("aaaaaa\r\n");
     	processList();
+    	//printString("aaaaaa\r\n");
     	break;
     //case 0x50:
       //goToDir(BX, CX, DX);
@@ -282,38 +285,58 @@ void stateToString(int state, char **string) {
 }*/
 
 void processList() {
-	struct PCB* pcb;
-	int segment;
-	int i;
-	char files[SECTOR_SIZE];
-	char stringsegment[8];
-	char stateName[9];
-	interrupt(0x21, 0x0, "PID \tProcessName\tSegment\tState",0,0);
-	readSector(files, FILES_SECTOR);
-	setKernelDataSegment();
-	for (i = 2; i < 10; i++) {
+	
+	if (1) {
+		struct PCB* pcb;
+		int segment;
+		int i;
+		char files[SECTOR_SIZE];
+		char stateName[9];
+		setKernelDataSegment();
+		printString("PID \tProcessName\tSegment\tState\r\n");
+		restoreDataSegment();
+		readSector(files, FILES_SECTOR);
+
+	for (i = 1; i < 10; i++) {
+		segment = 0x1000 * i;
+		setKernelDataSegment();
 		pcb = getPCBOfSegment(segment);
+		restoreDataSegment();
 		if (pcb != NULL) {
+			char stringsegment[8];
+			char fileindex;
 			stringsegment[0] = '0';
 			stringsegment[1] = 'x';
-			stringsegment[2] = i+'0';
+			stringsegment[2] = i +'0'-2;
 			stringsegment[3] = '\0';
-			printString(&stringsegment[2]);
+			interrupt(0x21, 0x0, &stringsegment[2],0,0);
+			stringsegment[2] = i +'0';
 			stringsegment[3] = '0';
 			stringsegment[4] = '0';
 			stringsegment[5] = '0';
 			stringsegment[6] = '\0';
 			segment = 0x1000 * i;
-			printString("	");
-			printString(files[(pcb->index) * DIRS_ENTRY_LENGTH + 1]);
-			printString("		");
-			printString(stringsegment);
-			//printString("	");
-			//printString(pcb->)
+			setKernelDataSegment();
+			printString("\t\t");
+			fileindex = pcb->index;
+			restoreDataSegment();
+			interrupt(0x21, 0x0, &files[fileindex * DIRS_ENTRY_LENGTH + 1],0,0);
+			setKernelDataSegment();
+			interrupt(0x21, 0x0, "\t\t",0,0);
+			restoreDataSegment();
+			interrupt(0x21, 0x0, stringsegment,0,0);
+			setKernelDataSegment();
+			switch (pcb->state) {
+				case 1 : printString("\tRUNNING"); break;
+				case 2 : printString("\tSTARTING"); break;
+				case 3 : printString("\tREADY"); break;
+				case 4 : printString("\tPAUSED");
+			}
 			printString("\r\n");
+			restoreDataSegment();
 		}
 	}
-	restoreDataSegment();
+	}
 }
 
 void putArgs (char curdir, char argc, char **argv) {

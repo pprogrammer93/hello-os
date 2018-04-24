@@ -26,9 +26,9 @@ int main() {
 	} else if (equalString(command[0], "resume")) {
 		interrupt(0x21, 0x33, command[1][0]-'0', &success, 0);
 	} else if (equalString(command[0], "pause"))  {
-		interrupt(0x21, 0x34, command[1][0]-'0', &success, 0);
+		interrupt(0x21, 0x32, command[1][0]-'0', &success, 0);
 	} else if (equalString(command[0], "kill"))  {
-		interrupt(0x21, 0x35, command[1][0]-'0', &success, 0);	
+		interrupt(0x21, 0x34, command[1][0]-'0', &success, 0);	
 	} else if (equalString(command[0], "ps")){
 		interrupt(0x21, 0x35, 0, 0, 0);
 	} else {
