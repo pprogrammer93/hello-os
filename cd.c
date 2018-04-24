@@ -33,7 +33,7 @@ int main() {
 	char argv[3][50];
 	char dirs [512];
 	char dirname[15];
-	
+	enableInterrupts();
 	interrupt(0x21, 0x02, dirs, DIRS_SECTOR, 0); //read sector dirs
 	interrupt(0x21, 0x21, &curdir, 0, 0); //getcurdir
 	interrupt(0x21, 0x22, &argc, 0, 0); //getargc

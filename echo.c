@@ -6,6 +6,7 @@ int main() {
 	char argv[4][20];
 	char input[50];
 	
+	enableInterrupts();
 	interrupt(0x21, 0x22, &argc, 0, 0); //getargc
 	for (i=0; i<argc; ++i) {
 		interrupt(0x21, 0x23, i, argv[i], 0);	//getargs

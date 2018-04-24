@@ -7,11 +7,12 @@ int main() {
 	int i;
 	char curdir;
 	char argc;
+	int isParallel;
 	int success;
 	char argv[20][20];
 	char input[100];
 	char * command[20];
-
+	enableInterrupts();
 	while (1) {
 	interrupt(0x21, 0x00, "$ ", 0, 0);
 
@@ -20,9 +21,13 @@ int main() {
 	
 	readString(input, 1);
 	parseInput(input, command);
+
+	interrupt(0x21, 0x22, &argc, 0, 0); //getargc
+	interrupt(0x21, 0x23, argc-1, argv[0], 0);	//getargs
+	isParallel = argv[0][0] == '&';
 	
 	if (command[0][0] == '.' && command[0][1] == '/') {
-		interrupt(0x21, curdir << 8 | 0x6, &command[0][2], 0, &success); //execute dari curdir
+		interrupt(0x21, curdir << 8 | 0x6, &command[0][2], isParallel, &success); //execute dari curdir
 	} else if (equalString(command[0], "resume")) {
 		interrupt(0x21, 0x33, command[1][0]-'0', &success, 0);
 	} else if (equalString(command[0], "pause"))  {
@@ -32,7 +37,7 @@ int main() {
 	} else if (equalString(command[0], "ps")){
 		interrupt(0x21, 0x35, 0, 0, 0);
 	} else {
-		interrupt(0x21, 0xFF << 8 | 0x6, command[0], 0, &success);
+		interrupt(0x21, 0xFF << 8 | 0x6, command[0], isParallel, &success);
 	}
 	
 

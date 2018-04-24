@@ -37,6 +37,7 @@ void readFile(char *buffer, char *path, int *result, char parentIndex);
 void clear(char *buffer, int length);
 void writeFile(char *buffer, char *path, int *sectors, char parentIndex);
 void executeProgram(char *path, int *success, char parentIndex);
+void executeParallel(char *path, int *success, char parentIndex);
 
 char equalString(char *str1, char  *str2, int str1length);
 int findEntry(char *name, char *sector);
@@ -163,7 +164,11 @@ void handleInterrupt21 (int AX, int BX, int CX, int DX) {
       writeFile(BX, CX, DX, AH);
       break;
     case 0x06:
-      executeProgram(BX, DX, AH);
+    	if (CX == 0) {
+      		executeProgram(BX, DX, AH);
+      	} else {
+      		executeParallel(BX, DX, AH);
+      	}
       break;
     case 0x07:
       terminateProgram(BX);
@@ -209,13 +214,11 @@ void handleInterrupt21 (int AX, int BX, int CX, int DX) {
     	killProcess(BX, CX);
     	break;
     case 0x35:
-    //interrupt(0x21, 0x0, "PID \tProcessName\tSegment\tState\r\n",0,0);
-    //printString("aaaaaa\r\n");
     	processList();
-    	//printString("aaaaaa\r\n");
     	break;
-    //case 0x50:
-      //goToDir(BX, CX, DX);
+    case 0x36:
+      executeParallel(BX, DX, AH);
+      break;
     default:
       printString("Invalid interrupt");
   }
@@ -672,20 +675,7 @@ void writeFile(char *buffer, char *path, int *sectors, char parentIndex){
 	return;
 }
 
-/*
-void executeProgram(char *path, int segment, int *success, char parentIndex){
-	char buffer[MAX_SECTORS * SECTOR_SIZE];
-	readFile(buffer, path, success, parentIndex);
-	if (*success >= SUCCESS) {
-		int i;
-		
-		for (i = 0; i < MAX_SECTORS * SECTOR_SIZE; i++) {
-			putInMemory(segment, i, buffer[i]);
-		} 
-		launchProgram(segment);
-	}	 
-}
-/**/
+
 
 void executeProgram (char *path, int *result, char parentIndex){
 	struct PCB* pcb;
@@ -714,6 +704,41 @@ void executeProgram (char *path, int *result, char parentIndex){
 			initializeProgram(segment);
 		
 			sleep();
+		}
+		else {
+			*result = INSUFFICIENT_SEGMENTS;
+		}
+	}
+}
+
+
+
+void executeParallel (char *path, int *result, char parentIndex){
+	struct PCB* pcb;
+	int segment;
+	int i, fileIndex;
+	char buffer[MAX_SECTORS * SECTOR_SIZE];
+	readFile(buffer, path, result, parentIndex);
+	if (*result != NOT_FOUND) {
+		setKernelDataSegment();
+		segment = getFreeMemorySegment();
+		restoreDataSegment();
+		fileIndex = *result;
+		if (segment != NO_FREE_SEGMENTS) {
+			setKernelDataSegment();
+			pcb = getFreePCB();
+			pcb->index = fileIndex;
+			pcb->state = STARTING;
+			pcb->segment = segment;
+			pcb->stackPointer = 0xFF00;
+			pcb->parentSegment = NO_PARENT;
+			addToReady(pcb);
+			restoreDataSegment();
+			for (i = 0; i < SECTOR_SIZE * MAX_SECTORS; i++) {
+			putInMemory(segment, i, buffer[i]);
+			}
+			initializeProgram(segment);
+		
 		}
 		else {
 			*result = INSUFFICIENT_SEGMENTS;

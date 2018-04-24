@@ -32,6 +32,7 @@ int main() {
 	char argv[3][50];
 	char input[SECTOR_SIZE];
 
+	enableInterrupts();
 	interrupt(0x21, 0x21, &curdir, 0, 0); //getcurdir
 	interrupt(0x21, 0x22, &argc, 0, 0); //getargc
 	for (i=0; i<argc; ++i) {
